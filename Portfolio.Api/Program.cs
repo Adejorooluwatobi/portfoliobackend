@@ -42,7 +42,11 @@ public class Program
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             // 4. Add Controllers
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
 
             // 5. Configure JWT Authentication (Fallback to config if env is missing)
             var jwtSecret = Environment.GetEnvironmentVariable("JWT_KEY") ?? builder.Configuration["Jwt:Secret"] ?? "OluwatobiPortfolioSuperSecretKey2025MustBeAtLeast32BytesLong!";
@@ -74,14 +78,16 @@ public class Program
             builder.Services.AddAuthorization();
 
             // 6. Configure CORS
-            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
-                ?? new[] { "http://localhost:4200", "http://localhost:3000", "http://127.0.0.1:5500" };
-
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowPortfolioClients", policy =>
                 {
-                    policy.WithOrigins(allowedOrigins)
+                    policy.SetIsOriginAllowed(origin =>
+                          {
+                              if (string.IsNullOrEmpty(origin)) return false;
+                              var host = new Uri(origin).Host;
+                              return host == "localhost" || host == "127.0.0.1";
+                          })
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();
