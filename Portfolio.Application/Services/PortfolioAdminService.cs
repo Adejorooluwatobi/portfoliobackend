@@ -313,8 +313,9 @@ public class PortfolioAdminService : IPortfolioAdminService
         card.SortOrder = dto.SortOrder;
         card.UpdatedAt = DateTime.UtcNow;
 
-        card.Tags.Clear();
-        card.Tags = dto.Tags.Select((t, i) => new DisciplineCardTag { DisciplineCardId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        _context.DisciplineCardTags.RemoveRange(card.Tags);
+        var newTags = dto.Tags.Select((t, i) => new DisciplineCardTag { DisciplineCardId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        await _context.DisciplineCardTags.AddRangeAsync(newTags, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
@@ -375,8 +376,9 @@ public class PortfolioAdminService : IPortfolioAdminService
         exp.SortOrder = dto.SortOrder;
         exp.UpdatedAt = DateTime.UtcNow;
 
-        exp.Technologies.Clear();
-        exp.Technologies = dto.Technologies.Select((t, i) => new ExperienceTechnology { WorkExperienceId = id, Name = t, SortOrder = i + 1 }).ToList();
+        _context.ExperienceTechnologies.RemoveRange(exp.Technologies);
+        var newTechs = dto.Technologies.Select((t, i) => new ExperienceTechnology { WorkExperienceId = id, Name = t, SortOrder = i + 1 }).ToList();
+        await _context.ExperienceTechnologies.AddRangeAsync(newTechs, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
@@ -607,11 +609,14 @@ public class PortfolioAdminService : IPortfolioAdminService
         project.SortOrder = dto.SortOrder;
         project.UpdatedAt = DateTime.UtcNow;
 
-        project.Tags.Clear();
-        project.Tags = dto.Tags.Select((t, i) => new ProjectTag { ProjectId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        _context.ProjectTags.RemoveRange(project.Tags);
+        _context.ProjectCategoryMaps.RemoveRange(project.CategoryMaps);
 
-        project.CategoryMaps.Clear();
-        project.CategoryMaps = dto.CategoryIds.Select(catId => new ProjectCategoryMap { ProjectId = id, ProjectCategoryId = catId }).ToList();
+        var newTags = dto.Tags.Select((t, i) => new ProjectTag { ProjectId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        var newCatMaps = dto.CategoryIds.Select(catId => new ProjectCategoryMap { ProjectId = id, ProjectCategoryId = catId }).ToList();
+
+        await _context.ProjectTags.AddRangeAsync(newTags, cancellationToken);
+        await _context.ProjectCategoryMaps.AddRangeAsync(newCatMaps, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
@@ -657,11 +662,14 @@ public class PortfolioAdminService : IPortfolioAdminService
         cs.LiveUrl = dto.LiveUrl;
         cs.UpdatedAt = DateTime.UtcNow;
 
-        cs.Highlights.Clear();
-        cs.Highlights = dto.Highlights.Select((h, i) => new CaseStudyHighlight { CaseStudyId = cs.Id, HighlightText = h, SortOrder = i + 1 }).ToList();
+        _context.CaseStudyHighlights.RemoveRange(cs.Highlights);
+        _context.CaseStudyTechnologies.RemoveRange(cs.Technologies);
 
-        cs.Technologies.Clear();
-        cs.Technologies = dto.Technologies.Select((t, i) => new CaseStudyTechnology { CaseStudyId = cs.Id, Name = t, SortOrder = i + 1 }).ToList();
+        var newHighlights = dto.Highlights.Select((h, i) => new CaseStudyHighlight { CaseStudyId = cs.Id, HighlightText = h, SortOrder = i + 1 }).ToList();
+        var newTechs = dto.Technologies.Select((t, i) => new CaseStudyTechnology { CaseStudyId = cs.Id, Name = t, SortOrder = i + 1 }).ToList();
+
+        await _context.CaseStudyHighlights.AddRangeAsync(newHighlights, cancellationToken);
+        await _context.CaseStudyTechnologies.AddRangeAsync(newTechs, cancellationToken);
 
         // Also mark project HasCaseStudy = true
         var proj = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
@@ -776,8 +784,9 @@ public class PortfolioAdminService : IPortfolioAdminService
         article.SortOrder = dto.SortOrder;
         article.UpdatedAt = DateTime.UtcNow;
 
-        article.Tags.Clear();
-        article.Tags = dto.Tags.Select((t, i) => new ArticleTag { ArticleId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        _context.ArticleTags.RemoveRange(article.Tags);
+        var newTags = dto.Tags.Select((t, i) => new ArticleTag { ArticleId = id, TagName = t, SortOrder = i + 1 }).ToList();
+        await _context.ArticleTags.AddRangeAsync(newTags, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
