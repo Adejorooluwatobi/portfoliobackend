@@ -102,26 +102,28 @@ public class Program
             // 8. HTTP Pipeline
             app.UseMiddleware<ExceptionMiddleware>(); // Global Exception Handling
 
-            if (app.Environment.IsDevelopment())
+            // Always enable OpenAPI & Scalar API reference for easy testing in staging/production
+            app.MapOpenApi();
+            app.MapScalarApiReference(options =>
             {
-                app.MapOpenApi();
-                app.MapScalarApiReference(options =>
+                options.Title = "Portfolio API";
+                options.Theme = ScalarTheme.DeepSpace;
+                options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
+                options.Authentication = new ScalarAuthenticationOptions
                 {
-                    options.Title = "Portfolio API";
-                    options.Theme = ScalarTheme.DeepSpace;
-                    options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
-                    options.Authentication = new ScalarAuthenticationOptions
-                    {
-                        PreferredSecuritySchemes = ["Bearer"]
-                    };
-                });
-            }
+                    PreferredSecuritySchemes = ["Bearer"]
+                };
+            });
 
             app.UseStaticFiles();
             app.UseCors("AllowPortfolioClients");
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Root & Health check endpoints
+            app.MapGet("/", () => Results.Ok(new { status = "healthy", message = "Portfolio API is live", docs = "/scalar/v1" }));
+            app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
             app.MapControllers();
 
