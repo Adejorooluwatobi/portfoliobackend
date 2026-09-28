@@ -10,6 +10,7 @@ using Portfolio.Infrastructure.Data.Seed;
 using Portfolio.Api.Middleware;
 using Serilog;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Portfolio.Api;
 
@@ -77,30 +78,39 @@ public class Program
 
             builder.Services.AddAuthorization();
 
-            // 6. Configure CORS
+            // 6. Forwarded Headers for Cloud Reverse Proxies (Render, Cloudflare)
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownIPNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
+            // 7. Configure CORS (matching POS_SAAS: AllowAnyOrigin for unrestricted local & cloud access)
             builder.Services.AddCors(options =>
             {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
                 options.AddPolicy("AllowPortfolioClients", policy =>
                 {
-                    policy.SetIsOriginAllowed(origin =>
-                          {
-                              if (string.IsNullOrEmpty(origin)) return false;
-                              var host = new Uri(origin).Host;
-                              return host == "localhost" || host == "127.0.0.1";
-                          })
+                    policy.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod()
-                          .AllowCredentials();
+                          .AllowAnyMethod();
                 });
             });
 
-            // 7. Configure OpenAPI
+            // 8. Configure OpenAPI
             builder.Services.AddOpenApi();
 
             var app = builder.Build();
 
-            // 8. HTTP Pipeline
+            // 9. HTTP Pipeline
             app.UseMiddleware<ExceptionMiddleware>(); // Global Exception Handling
+            app.UseForwardedHeaders();
 
             // Always enable OpenAPI & Scalar API reference for easy testing in staging/production
             app.MapOpenApi();
@@ -121,9 +131,9 @@ public class Program
             app.UseAuthentication();
             app.UseAuthorization();
 
-            // Root & Health check endpoints
-            app.MapGet("/", () => Results.Ok(new { status = "healthy", message = "Portfolio API is live", docs = "/scalar/v1" }));
-            app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+            // Root & Health check endpoints (supports both GET and HEAD for cloud health probes)
+            app.MapMethods("/", ["GET", "HEAD"], () => Results.Ok(new { status = "healthy", message = "Portfolio API is live", docs = "/scalar/v1" }));
+            app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
             app.MapControllers();
 
