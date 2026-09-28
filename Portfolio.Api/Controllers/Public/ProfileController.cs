@@ -27,4 +27,15 @@ public class ProfileController : ControllerBase
 
         return Ok(profile);
     }
+
+    [HttpGet("hero")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHero(CancellationToken cancellationToken)
+    {
+        var profile = await _publicService.GetProfileAsync(cancellationToken);
+        if (profile?.HeroSection == null) return NotFound(new { message = "Hero section not found." });
+
+        return Ok(profile.HeroSection);
+    }
 }

@@ -754,7 +754,9 @@ public class PortfolioAdminService : IPortfolioAdminService
             PublishedAt = dto.PublishedAt ?? DateTime.UtcNow,
             IsActive = dto.IsActive,
             SortOrder = dto.SortOrder,
-            Tags = dto.Tags.Select((t, i) => new ArticleTag { TagName = t, SortOrder = i + 1 }).ToList()
+            Tags = (dto.Tags != null && dto.Tags.Any()) 
+                ? dto.Tags.Select((t, i) => new ArticleTag { TagName = t, SortOrder = i + 1 }).ToList() 
+                : new List<ArticleTag>()
         };
 
         await _context.Articles.AddAsync(article, cancellationToken);
@@ -767,7 +769,7 @@ public class PortfolioAdminService : IPortfolioAdminService
         var article = await _context.Articles.Include(a => a.Tags).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         if (article == null) return false;
 
-        article.Slug = dto.Slug.Trim().ToLower();
+        article.Slug = string.IsNullOrWhiteSpace(dto.Slug) ? (article.Slug ?? Guid.NewGuid().ToString()) : dto.Slug.Trim().ToLower();
         article.Title = dto.Title;
         article.Excerpt = dto.Excerpt;
         article.Category = dto.Category;
@@ -785,8 +787,11 @@ public class PortfolioAdminService : IPortfolioAdminService
         article.UpdatedAt = DateTime.UtcNow;
 
         _context.ArticleTags.RemoveRange(article.Tags);
-        var newTags = dto.Tags.Select((t, i) => new ArticleTag { ArticleId = id, TagName = t, SortOrder = i + 1 }).ToList();
-        await _context.ArticleTags.AddRangeAsync(newTags, cancellationToken);
+        if (dto.Tags != null && dto.Tags.Any())
+        {
+            var newTags = dto.Tags.Select((t, i) => new ArticleTag { ArticleId = id, TagName = t, SortOrder = i + 1 }).ToList();
+            await _context.ArticleTags.AddRangeAsync(newTags, cancellationToken);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;

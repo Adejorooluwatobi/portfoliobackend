@@ -24,4 +24,14 @@ public class ArticlesController : ControllerBase
         var articles = await _publicService.GetArticlesAsync(cancellationToken);
         return Ok(articles);
     }
+
+    [HttpGet("{idOrSlug}")]
+    [ProducesResponseType(typeof(ArticleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetArticleByIdOrSlug(string idOrSlug, CancellationToken cancellationToken)
+    {
+        var article = await _publicService.GetArticleByIdOrSlugAsync(idOrSlug, cancellationToken);
+        if (article == null) return NotFound(new { message = "Article not found." });
+        return Ok(article);
+    }
 }
