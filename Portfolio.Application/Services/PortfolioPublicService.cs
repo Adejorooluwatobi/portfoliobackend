@@ -12,6 +12,7 @@ public interface IPortfolioPublicService
     Task<ProjectsResponseDto> GetProjectsAsync(string? categorySlug = null, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default);
     Task<List<ArticleDto>> GetArticlesAsync(CancellationToken cancellationToken = default);
+    Task<ArticleDto?> GetArticleByIdOrSlugAsync(string idOrSlug, CancellationToken cancellationToken = default);
     Task<ContactInfoDto?> GetContactInfoAsync(CancellationToken cancellationToken = default);
     Task<NavigationResponseDto> GetNavigationAsync(CancellationToken cancellationToken = default);
     Task<PageSettingsDto?> GetPageSettingsAsync(string pageKey, CancellationToken cancellationToken = default);
@@ -314,6 +315,40 @@ public class PortfolioPublicService : IPortfolioPublicService
             SortOrder = a.SortOrder,
             Tags = a.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList()
         }).ToList();
+    }
+
+    public async Task<ArticleDto?> GetArticleByIdOrSlugAsync(string idOrSlug, CancellationToken cancellationToken = default)
+    {
+        var isGuid = Guid.TryParse(idOrSlug, out var id);
+        var query = _context.Articles.AsNoTracking()
+            .Include(a => a.Tags)
+            .Where(a => a.IsActive);
+
+        var article = isGuid
+            ? await query.FirstOrDefaultAsync(a => a.Id == id, cancellationToken)
+            : await query.FirstOrDefaultAsync(a => a.Slug == idOrSlug.ToLower(), cancellationToken);
+
+        if (article == null) return null;
+
+        return new ArticleDto
+        {
+            Id = article.Id,
+            Slug = article.Slug,
+            Title = article.Title,
+            Excerpt = article.Excerpt,
+            Category = article.Category,
+            PublicationType = article.PublicationType,
+            PublishStatus = article.PublishStatus,
+            ReadTimeMinutes = article.ReadTimeMinutes,
+            ImageUrl = article.ImageUrl,
+            ImageAlt = article.ImageAlt,
+            LinkedinUrl = article.LinkedinUrl,
+            TwitterUrl = article.TwitterUrl,
+            FooterAnnotation = article.FooterAnnotation,
+            PublishedAt = article.PublishedAt,
+            SortOrder = article.SortOrder,
+            Tags = article.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList()
+        };
     }
 
     public async Task<ContactInfoDto?> GetContactInfoAsync(CancellationToken cancellationToken = default)
