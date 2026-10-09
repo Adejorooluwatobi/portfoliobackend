@@ -27,6 +27,7 @@ public interface IAppDbContext
     DbSet<CaseStudyTechnology> CaseStudyTechnologies { get; }
     DbSet<Article> Articles { get; }
     DbSet<ArticleTag> ArticleTags { get; }
+    DbSet<ArticleLink> ArticleLinks { get; }
     DbSet<ContactInquiry> ContactInquiries { get; }
     DbSet<PageSettings> PageSettings { get; }
     DbSet<NavItem> NavItems { get; }

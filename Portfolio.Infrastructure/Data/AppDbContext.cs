@@ -32,6 +32,7 @@ public class AppDbContext : DbContext, IAppDbContext
     public DbSet<CaseStudyTechnology> CaseStudyTechnologies => Set<CaseStudyTechnology>();
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ArticleTag> ArticleTags => Set<ArticleTag>();
+    public DbSet<ArticleLink> ArticleLinks => Set<ArticleLink>();
     public DbSet<ContactInquiry> ContactInquiries => Set<ContactInquiry>();
     public DbSet<PageSettings> PageSettings => Set<PageSettings>();
     public DbSet<NavItem> NavItems => Set<NavItem>();
@@ -211,7 +212,7 @@ public class AppDbContext : DbContext, IAppDbContext
             b.HasKey(x => x.Id);
         });
 
-        // Article & Tags
+        // Article & Tags & Links
         modelBuilder.Entity<Article>(b =>
         {
             b.ToTable("articles");
@@ -221,12 +222,25 @@ public class AppDbContext : DbContext, IAppDbContext
                 .WithOne(x => x.Article)
                 .HasForeignKey(x => x.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Links)
+                .WithOne(x => x.Article)
+                .HasForeignKey(x => x.ArticleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<ArticleTag>(b =>
         {
             b.ToTable("article_tags");
             b.HasKey(x => x.Id);
+        });
+
+        modelBuilder.Entity<ArticleLink>(b =>
+        {
+            b.ToTable("article_links");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.Title).HasMaxLength(150).IsRequired();
+            b.Property(x => x.Url).HasMaxLength(1000).IsRequired();
+            b.Property(x => x.Icon).HasMaxLength(100);
         });
 
         // ContactInquiry

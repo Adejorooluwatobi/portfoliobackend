@@ -127,6 +127,7 @@ public class PortfolioPublicService : IPortfolioPublicService
                 Title = d.Title,
                 Description = d.Description,
                 SortOrder = d.SortOrder,
+                AccentColor = d.AccentColor ?? "#8b5cf6",
                 Tags = d.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList()
             }).ToList()
         };
@@ -144,7 +145,7 @@ public class PortfolioPublicService : IPortfolioPublicService
         {
             Headline = pageSetting?.HeroHeading ?? "Experience, Credentials & Skills",
             Summary = pageSetting?.HeroSubtitle ?? "4+ continuous years engineering production web applications, distributed APIs, microservices, and responsive user interfaces.",
-            CvFileUrl = profile?.CvFileUrl ?? "assets/doc/OLUWATOBI_Adejoro_CV(Fullstack).docx",
+            CvFileUrl = profile?.CvFileUrl ?? string.Empty,
             CvDownloadName = profile?.CvDownloadName ?? "OLUWATOBI_Adejoro_CV.docx",
             PhilosophyStatement = "I believe clean architecture, automated testing, and thoughtful system design produce software that scales reliably and reduces maintenance debt over years of production use.",
 
@@ -293,6 +294,7 @@ public class PortfolioPublicService : IPortfolioPublicService
         var articles = await _context.Articles.AsNoTracking()
             .Where(a => a.IsActive)
             .Include(a => a.Tags)
+            .Include(a => a.Links)
             .OrderBy(a => a.SortOrder)
             .ToListAsync(cancellationToken);
 
@@ -313,7 +315,15 @@ public class PortfolioPublicService : IPortfolioPublicService
             FooterAnnotation = a.FooterAnnotation,
             PublishedAt = a.PublishedAt,
             SortOrder = a.SortOrder,
-            Tags = a.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList()
+            Tags = a.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList(),
+            Links = a.Links.OrderBy(l => l.SortOrder).Select(l => new ArticleLinkDto
+            {
+                Id = l.Id,
+                Title = l.Title,
+                Url = l.Url,
+                Icon = l.Icon,
+                SortOrder = l.SortOrder
+            }).ToList()
         }).ToList();
     }
 
@@ -322,6 +332,7 @@ public class PortfolioPublicService : IPortfolioPublicService
         var isGuid = Guid.TryParse(idOrSlug, out var id);
         var query = _context.Articles.AsNoTracking()
             .Include(a => a.Tags)
+            .Include(a => a.Links)
             .Where(a => a.IsActive);
 
         var article = isGuid
@@ -347,7 +358,15 @@ public class PortfolioPublicService : IPortfolioPublicService
             FooterAnnotation = article.FooterAnnotation,
             PublishedAt = article.PublishedAt,
             SortOrder = article.SortOrder,
-            Tags = article.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList()
+            Tags = article.Tags.OrderBy(t => t.SortOrder).Select(t => t.TagName).ToList(),
+            Links = article.Links.OrderBy(l => l.SortOrder).Select(l => new ArticleLinkDto
+            {
+                Id = l.Id,
+                Title = l.Title,
+                Url = l.Url,
+                Icon = l.Icon,
+                SortOrder = l.SortOrder
+            }).ToList()
         };
     }
 
@@ -385,7 +404,7 @@ public class PortfolioPublicService : IPortfolioPublicService
             Monogram = siteSettings?.Monogram ?? "OA",
             FullName = profile?.FullName ?? "Oluwatobi Adejoro",
             PrimaryTitle = profile?.PrimaryTitle ?? "Senior Fullstack Engineer",
-            CvFileUrl = profile?.CvFileUrl ?? "assets/doc/OLUWATOBI_Adejoro_CV(Fullstack).docx",
+            CvFileUrl = profile?.CvFileUrl ?? string.Empty,
             CvDownloadName = profile?.CvDownloadName ?? "OLUWATOBI_Adejoro_CV.docx",
             IsAvailable = profile?.IsAvailable ?? true,
             AvailabilityText = profile?.AvailabilityText ?? "Available for opportunities",

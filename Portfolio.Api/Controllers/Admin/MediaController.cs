@@ -53,6 +53,13 @@ public class MediaController : ControllerBase
             return BadRequest(new { message = "No document file was uploaded." });
         }
 
+        var allowedExtensions = new[] { ".pdf", ".docx", ".doc" };
+        var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+        {
+            return BadRequest(new { message = $"Unsupported document format. Allowed formats: .pdf, .docx, .doc" });
+        }
+
         if (file.Length > 25 * 1024 * 1024)
         {
             return BadRequest(new { message = "Document size exceeds the 25MB limit." });

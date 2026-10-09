@@ -17,9 +17,27 @@ public class CloudinaryService : ICloudinaryService
     {
         _logger = logger;
 
-        var cloudName = configuration["Cloudinary:CloudName"];
-        var apiKey = configuration["Cloudinary:ApiKey"];
-        var apiSecret = configuration["Cloudinary:ApiSecret"];
+        var cloudinaryUrl = Environment.GetEnvironmentVariable("CLOUDINARY_URL") ?? configuration["CLOUDINARY_URL"];
+        if (!string.IsNullOrWhiteSpace(cloudinaryUrl))
+        {
+            _cloudinary = new Cloudinary(cloudinaryUrl);
+            _cloudinary.Api.Secure = true;
+            _isConfigured = true;
+            _logger.LogInformation("Cloudinary service initialized via CLOUDINARY_URL.");
+            return;
+        }
+
+        var cloudName = configuration["Cloudinary:CloudName"]
+            ?? Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")
+            ?? Environment.GetEnvironmentVariable("Cloudinary__CloudName");
+
+        var apiKey = configuration["Cloudinary:ApiKey"]
+            ?? Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY")
+            ?? Environment.GetEnvironmentVariable("Cloudinary__ApiKey");
+
+        var apiSecret = configuration["Cloudinary:ApiSecret"]
+            ?? Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET")
+            ?? Environment.GetEnvironmentVariable("Cloudinary__ApiSecret");
 
         if (!string.IsNullOrWhiteSpace(cloudName) && !string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(apiSecret))
         {
@@ -32,7 +50,7 @@ public class CloudinaryService : ICloudinaryService
         else
         {
             _isConfigured = false;
-            _logger.LogInformation("Cloudinary credentials not set. Falling back to local filesystem storage in wwwroot/uploads.");
+            _logger.LogWarning("Cloudinary credentials not set. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. Falling back to local filesystem storage in wwwroot/uploads.");
         }
     }
 
@@ -86,12 +104,28 @@ public class CloudinaryService : ICloudinaryService
         {
             try
             {
+                var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = ".pdf";
+                }
+
+                var rawBaseName = Path.GetFileNameWithoutExtension(fileName);
+                var cleanBaseName = System.Text.RegularExpressions.Regex.Replace(rawBaseName, @"[^a-zA-Z0-9_\-]", "_").Trim('_');
+                if (string.IsNullOrWhiteSpace(cleanBaseName))
+                {
+                    cleanBaseName = "cv_document";
+                }
+
+                var uniqueSuffix = Guid.NewGuid().ToString("N")[..8];
+                var cleanFolder = folder.Trim().Trim('/');
+                var publicId = $"{cleanFolder}/{cleanBaseName}_{uniqueSuffix}{extension}";
+
                 var uploadParams = new RawUploadParams
                 {
                     File = new FileDescription(fileName, fileStream),
-                    Folder = folder,
-                    UseFilename = true,
-                    UniqueFilename = true
+                    PublicId = publicId,
+                    Overwrite = true
                 };
 
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams, "raw", cancellationToken);
@@ -102,12 +136,14 @@ public class CloudinaryService : ICloudinaryService
                     return new UploadMediaResponseDto { Success = false, Message = uploadResult.Error.Message };
                 }
 
+                var finalUrl = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString() ?? string.Empty;
+
                 return new UploadMediaResponseDto
                 {
                     Success = true,
-                    Url = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString() ?? string.Empty,
+                    Url = finalUrl,
                     PublicId = uploadResult.PublicId,
-                    Format = uploadResult.Format,
+                    Format = extension.TrimStart('.'),
                     Bytes = uploadResult.Bytes,
                     Message = "File uploaded successfully to Cloudinary."
                 };

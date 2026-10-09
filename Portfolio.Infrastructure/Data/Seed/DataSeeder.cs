@@ -103,7 +103,7 @@ public class DataSeeder
         var profile = new Profile
         {
             FullName = "Oluwatobi Adejoro",
-            PrimaryTitle = "Senior Fullstack Engineer",
+            PrimaryTitle = "Software Engineer",
             SidebarTitle = "Software Engineer",
             AvatarImageUrl = "assets/img/parsonal-info/oluwatobi-img.jpg",
             AvatarAltText = "Oluwatobi Adejoro - Senior Fullstack Software Engineer",
@@ -114,7 +114,7 @@ public class DataSeeder
             Location = "Lagos Nigeria",
             LocationDisplay = "Lagos / Remote Global",
             Birthday = new DateTime(1999, 6, 24, 0, 0, 0, DateTimeKind.Utc),
-            CvFileUrl = "assets/doc/OLUWATOBI_Adejoro_CV(Fullstack).docx",
+            CvFileUrl = Environment.GetEnvironmentVariable("INITIAL_CV_URL") ?? string.Empty,
             CvDownloadName = "OLUWATOBI_Adejoro_CV.docx",
             IsAvailable = true,
             AvailabilityText = "Available for opportunities",
@@ -122,11 +122,11 @@ public class DataSeeder
             ResponseTime = "< 24 Hours",
             EngagementScope = "Full-time, Contract, Technical Advisory",
             ResponseGuarantee = "Guaranteed reply within 24 hours",
-            YearsExperience = 4,
-            YearsExperienceSuffix = "4+",
+            YearsExperience = 7,
+            YearsExperienceSuffix = "7+",
             YearsExperienceLabel = "Production Systems",
-            ProjectsCompleted = 25,
-            ProjectsCompletedSuffix = "25+",
+            ProjectsCompleted = 10,
+            ProjectsCompletedSuffix = "10+",
             ProjectsLabel = "Web & Cloud APIs"
         };
 
@@ -139,7 +139,7 @@ public class DataSeeder
 
         var socials = new List<SocialLink>
         {
-            new() { Platform = "github", Title = "GitHub", Url = "https://github.com", Icon = "terminal", ShowInHeader = true, ShowInFooter = true, ShowInSidebar = false, SortOrder = 1 },
+            new() { Platform = "github", Title = "GitHub", Url = "https://github.com/Adejorooluwatobi", Icon = "terminal", ShowInHeader = true, ShowInFooter = true, ShowInSidebar = false, SortOrder = 1 },
             new() { Platform = "linkedin", Title = "LinkedIn", Url = "https://www.linkedin.com/in/adejoro-oluwatobi-6009411b5/", Icon = "share", ShowInHeader = true, ShowInFooter = true, ShowInSidebar = true, SortOrder = 2 },
             new() { Platform = "twitter", Title = "Twitter / X", Url = "https://x.com/tgold_adejoro", Icon = "chat", ShowInHeader = false, ShowInFooter = true, ShowInSidebar = true, SortOrder = 3 },
             new() { Platform = "facebook", Title = "Facebook", Url = "https://web.facebook.com/oluwatobi.adejoro.2025", Icon = "facebook", ShowInHeader = false, ShowInFooter = false, ShowInSidebar = true, SortOrder = 4 },
@@ -155,10 +155,10 @@ public class DataSeeder
 
         var hero = new HeroSection
         {
-            CategoryBadgeText = "Fullstack Engineering",
+            CategoryBadgeText = "Software Engineer ",
             CategoryBadgeIcon = "code_blocks",
             Headline = "Architecting Scalable, User-Centric Digital Experiences",
-            BioLead = "Passionate and detail-oriented Fullstack Developer with 4 years of experience in architecting, developing, and deploying robust, user-centric web applications. Proficient in both frontend and backend technologies, I specialize in crafting seamless digital experiences from concept to execution.",
+            BioLead = "Software engineer with 7+ years of experience, specializing in backend development with ASP.NET Core and C#, alongside \nstrong Node.js/NestJS expertise. I build RESTful APIs and scalable backend systems using .NET 6/7/8, EF Core, and SQL \nServer/PostgreSQL, applying SOLID principles, OOP, dependency injection, and async/await patterns to keep codebases clean \nand testable. \nI'm equally comfortable across the full stack -- integrating backend services with React and Angular frontends -- and have shipped \nwork spanning fintech, SaaS, and public sector platforms. I'm experienced with Git-based workflows, pull requests, code review, \nand unit testing (xUnit, NUnit, Moq, Jest), and have deployed and managed services on Azure, AWS, and GCP. ",
             BioFrontend = "On the frontend, I leverage modern frameworks like React and Angular to translate complex design concepts into responsive, accessible, and high-performance user interfaces. My expertise ensures optimal user experience across diverse devices and browsers.",
             BioBackend = "For the backend, I possess strong capabilities in Node.js, utilizing frameworks such as Express.js and NestJS to build scalable and efficient APIs and server-side logic. Additionally, I am proficient in ASP.NET Core, enabling me to engineer dependable enterprise applications across diverse architectural patterns.",
             PrimaryCtaText = "Explore Featured Works",
@@ -199,6 +199,7 @@ public class DataSeeder
             Icon = "palette",
             Title = "UI / UX Engineering",
             Description = "My comprehensive skill set spans HTML, modern CSS, JavaScript, and encompasses strong UI/UX principles, allowing me to bridge the gap between design and development effectively. I am dedicated to optimizing application performance, ensuring cross-browser compatibility, and maintaining clean, maintainable code.",
+            AccentColor = "#8b5cf6",
             SortOrder = 1,
             Tags = new List<DisciplineCardTag>
             {
@@ -215,13 +216,15 @@ public class DataSeeder
             Icon = "widgets",
             Title = "Fullstack App Development",
             Description = "I contribute engineering expertise to innovative projects within growth-oriented organizations, collaborating with cross-functional teams to deliver impactful solutions and continuously enhance user experiences. My commitment to continuous learning drives my pursuit of engineering excellence in every deployment.",
+            AccentColor = "#10b981",
             SortOrder = 2,
             Tags = new List<DisciplineCardTag>
             {
-                new() { TagName = "TypeScript", SortOrder = 1 },
-                new() { TagName = "Next.js", SortOrder = 2 },
-                new() { TagName = "State Architecture", SortOrder = 3 },
-                new() { TagName = "Micro-frontends", SortOrder = 4 }
+                new() { TagName = "Micro-frontends", SortOrder = 1 },
+                new() { TagName = "TypeScript", SortOrder = 2 },
+                new() { TagName = "Next.js", SortOrder = 3 },
+                new() { TagName = "State Architecture", SortOrder = 4 },
+                new() { TagName = "Angular.js", SortOrder = 5 }
             }
         };
 
@@ -231,13 +234,19 @@ public class DataSeeder
             Icon = "dns",
             Title = "API & Backend Architecture",
             Description = "Possessing deep capabilities in Node.js, utilizing Express.js and NestJS to build scalable, fault-tolerant microservices and asynchronous queue pipelines. Concurrently proficient in ASP.NET Core for building secure enterprise data endpoints and multi-tier business logic engines.",
+            AccentColor = "#0ea5e9",
             SortOrder = 3,
             Tags = new List<DisciplineCardTag>
             {
                 new() { TagName = "NestJS", SortOrder = 1 },
-                new() { TagName = "Node.js / Express", SortOrder = 2 },
-                new() { TagName = "ASP.NET Core", SortOrder = 3 },
-                new() { TagName = "REST & GraphQL", SortOrder = 4 }
+                new() { TagName = "REST & GraphQL", SortOrder = 2 },
+                new() { TagName = "Node.js / Express", SortOrder = 3 },
+                new() { TagName = "ASP.NET Core", SortOrder = 4 },
+                new() { TagName = "Fastapi", SortOrder = 5 },
+                new() { TagName = "Postgresql", SortOrder = 6 },
+                new() { TagName = "SQL", SortOrder = 7 },
+                new() { TagName = "database", SortOrder = 8 },
+                new() { TagName = "Mongodb", SortOrder = 9 }
             }
         };
 
@@ -247,6 +256,7 @@ public class DataSeeder
             Icon = "rocket_launch",
             Title = "Performance & Code Quality",
             Description = "Engineering applications that load fast, scale gracefully, and minimize operational costs. Dedicated to automated testing, continuous integration pipelines, cross-browser compatibility, and rigorous code review standards that eliminate technical debt before deployment.",
+            AccentColor = "#f59e0b",
             SortOrder = 4,
             Tags = new List<DisciplineCardTag>
             {
@@ -266,6 +276,28 @@ public class DataSeeder
 
         var e1 = new WorkExperience
         {
+            JobTitle = "Software Engineer",
+            CompanyName = "TOMA Legal (TOMA Tech Ltd)",
+            EmploymentType = "Remote",
+            DateRange = "2026 — Present",
+            IsCurrent = true,
+            Description = "● Build and maintain backend services in C# / ASP.NET Core for legal-tech document management and precedent library \nproducts. \n● Integrate backend APIs with React and Angular frontends, ensuring smooth end-to-end data flow across the stack. \n● Apply SOLID and OOP principles with clean architecture to keep the codebase modular and easy to extend. \n● Collaborate with the team through Git-based workflows, pull requests, and code review.",
+            AccentVariant = "primary",
+            SortOrder = 1,
+            Technologies = new List<ExperienceTechnology>
+            {
+                new() { Name = "React.js", SortOrder = 1 },
+                new() { Name = "CI/CD", SortOrder = 2 },
+                new() { Name = "RabbitMQ", SortOrder = 3 },
+                new() { Name = "ASP.NET", SortOrder = 4 },
+                new() { Name = "Reddis", SortOrder = 5 },
+                new() { Name = "Next.js", SortOrder = 6 },
+                new() { Name = "Docker", SortOrder = 7 }
+            }
+        };
+
+        var e2 = new WorkExperience
+        {
             JobTitle = "Senior Software Developer",
             CompanyName = "Cytech Consult",
             EmploymentType = "Full-Time",
@@ -273,7 +305,7 @@ public class DataSeeder
             IsCurrent = true,
             Description = "Leading the architectural design, modernization, and development of responsive cloud web applications with React, NestJS, and ASP.NET Core. Spearheaded performance optimizations reducing initial bundle payloads by 38%, established automated CI/CD deployment pipelines, and instituted code quality standards.",
             AccentVariant = "primary",
-            SortOrder = 1,
+            SortOrder = 2,
             Technologies = new List<ExperienceTechnology>
             {
                 new() { Name = "React 18", SortOrder = 1 },
@@ -284,7 +316,7 @@ public class DataSeeder
             }
         };
 
-        var e2 = new WorkExperience
+        var e3 = new WorkExperience
         {
             JobTitle = "Endpoint Tester",
             CompanyName = "Ike Qubicle Project",
@@ -293,7 +325,7 @@ public class DataSeeder
             IsCurrent = false,
             Description = "Conducted comprehensive API endpoint testing, load profiling, and payload validation for distributed backend microservices. Identified race conditions, secured authorization guardrails (JWT/OAuth2), and verified edge-case resilience prior to staging and production rollouts.",
             AccentVariant = "secondary",
-            SortOrder = 2,
+            SortOrder = 3,
             Technologies = new List<ExperienceTechnology>
             {
                 new() { Name = "API Testing", SortOrder = 1 },
@@ -303,7 +335,7 @@ public class DataSeeder
             }
         };
 
-        var e3 = new WorkExperience
+        var e4 = new WorkExperience
         {
             JobTitle = "Mid Level Fullstack Web Developer",
             CompanyName = "Cytech Consult",
@@ -312,7 +344,7 @@ public class DataSeeder
             IsCurrent = false,
             Description = "Engineered fullstack features spanning Node.js/Express backends and Angular/React SPAs. Integrated third-party payment gateways, designed relational database schemas, and ensured adherence to WCAG accessibility guidelines.",
             AccentVariant = "neutral",
-            SortOrder = 3,
+            SortOrder = 4,
             Technologies = new List<ExperienceTechnology>
             {
                 new() { Name = "Node.js", SortOrder = 1 },
@@ -323,16 +355,16 @@ public class DataSeeder
             }
         };
 
-        var e4 = new WorkExperience
+        var e5 = new WorkExperience
         {
             JobTitle = "Jr. Frontend Web Developer",
             CompanyName = "Cytech Consult",
             EmploymentType = "Full-Time",
-            DateRange = "2021 — 2022",
+            DateRange = "2019 — 2022",
             IsCurrent = false,
             Description = "Transformed Figma and Adobe XD prototypes into responsive, pixel-accurate HTML, CSS, and modern JavaScript applications. Collaborated closely with design teams to ensure flawless cross-browser compatibility and snappy animations.",
             AccentVariant = "neutral",
-            SortOrder = 4,
+            SortOrder = 5,
             Technologies = new List<ExperienceTechnology>
             {
                 new() { Name = "JavaScript ES6+", SortOrder = 1 },
@@ -342,7 +374,7 @@ public class DataSeeder
             }
         };
 
-        await _context.WorkExperiences.AddRangeAsync(e1, e2, e3, e4);
+        await _context.WorkExperiences.AddRangeAsync(e1, e2, e3, e4, e5);
     }
 
     private async Task SeedEducationsAsync()
@@ -367,7 +399,7 @@ public class DataSeeder
                 DegreeTitle = "FullStack JavaScript",
                 InstitutionName = "Cytech Technical Institute",
                 Location = "Lagos, Nigeria",
-                DateRange = "2020 — 2021",
+                DateRange = "2019 — 2020",
                 Icon = "terminal",
                 Description = "Intensive practical curriculum covering ES6+, Node.js runtime, asynchronous state patterns, DOM APIs, and scalable fullstack web development.",
                 CredentialType = "Certification",
@@ -660,12 +692,12 @@ public class DataSeeder
             PublicationType = "Software Development Guide",
             PublishStatus = "Published",
             ReadTimeMinutes = 6,
-            ImageUrl = "assets/img/blog/blog-img1.png",
+            ImageUrl = "/uploads/portfolio/articles/blog-img3_1b66dacf005b4d6e9155c9ceeb9d93fa.png",
             ImageAlt = "NestJS E-commerce architecture guide",
             LinkedinUrl = "https://bit.ly/46uFXSL",
             TwitterUrl = "https://x.com/tgold_adejoro/status/1940115330845876375",
             FooterAnnotation = "bit.ly/46uFXSL",
-            PublishedAt = DateTime.UtcNow.AddMonths(-3),
+            PublishedAt = new DateTime(2026, 6, 28, 0, 0, 0, DateTimeKind.Utc),
             IsActive = true,
             SortOrder = 1,
             Tags = new List<ArticleTag>
@@ -674,6 +706,11 @@ public class DataSeeder
                 new() { TagName = "Node.js", SortOrder = 2 },
                 new() { TagName = "TypeScript", SortOrder = 3 },
                 new() { TagName = "REST APIs", SortOrder = 4 }
+            },
+            Links = new List<ArticleLink>
+            {
+                new() { Title = "LinkedIn", Url = "https://bit.ly/46uFXSL", Icon = "share", SortOrder = 1 },
+                new() { Title = "X / Thread", Url = "https://x.com/tgold_adejoro/status/1940115330845876375", Icon = "chat", SortOrder = 2 }
             }
         };
 
@@ -691,7 +728,7 @@ public class DataSeeder
             LinkedinUrl = "https://www.linkedin.com/posts/adejoro-oluwatobi-6009411b5_softwaredevelopment-nestjs-typescript-activity-7377137213349707776-I7SF",
             TwitterUrl = "https://x.com/tgold_adejoro/status/1971370634048569808",
             FooterAnnotation = "Published Post",
-            PublishedAt = DateTime.UtcNow.AddMonths(-1),
+            PublishedAt = new DateTime(2026, 8, 28, 16, 23, 57, DateTimeKind.Utc),
             IsActive = true,
             SortOrder = 2,
             Tags = new List<ArticleTag>
@@ -700,6 +737,11 @@ public class DataSeeder
                 new() { TagName = "Clean Architecture", SortOrder = 2 },
                 new() { TagName = "Design Patterns", SortOrder = 3 },
                 new() { TagName = "Best Practices", SortOrder = 4 }
+            },
+            Links = new List<ArticleLink>
+            {
+                new() { Title = "LinkedIn", Url = "https://www.linkedin.com/posts/adejoro-oluwatobi-6009411b5_softwaredevelopment-nestjs-typescript-activity-7377137213349707776-I7SF", Icon = "share", SortOrder = 1 },
+                new() { Title = "X / Thread", Url = "https://x.com/tgold_adejoro/status/1971370634048569808", Icon = "chat", SortOrder = 2 }
             }
         };
 
@@ -727,7 +769,7 @@ public class DataSeeder
                 HeroBadgeIcon = "history_edu",
                 HeroBadgeText = "Professional Track Record",
                 HeroHeading = "Experience, Credentials & Skills",
-                HeroSubtitle = "4+ continuous years engineering production web applications, distributed APIs, microservices, and responsive user interfaces."
+                HeroSubtitle = "7+ continuous years engineering production web applications, distributed APIs, microservices, and responsive user interfaces."
             },
             new()
             {
