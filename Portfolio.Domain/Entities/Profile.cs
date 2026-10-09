@@ -16,7 +16,7 @@ public class Profile : BaseEntity
     public string Location { get; set; } = "Lagos Nigeria";
     public string LocationDisplay { get; set; } = "Lagos / Remote Global";
     public DateTime? Birthday { get; set; } = new DateTime(1999, 6, 24, 0, 0, 0, DateTimeKind.Utc);
-    public string CvFileUrl { get; set; } = "assets/doc/OLUWATOBI_Adejoro_CV(Fullstack).docx";
+    public string CvFileUrl { get; set; } = string.Empty;
     public string CvDownloadName { get; set; } = "OLUWATOBI_Adejoro_CV.docx";
     public bool IsAvailable { get; set; } = true;
     public string AvailabilityText { get; set; } = "Available for opportunities";

@@ -76,6 +76,7 @@ public class DisciplineCardCreateUpdateDto
     public string Icon { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? AccentColor { get; set; }
     public int SortOrder { get; set; }
     public List<string> Tags { get; set; } = new();
 }
@@ -185,6 +186,15 @@ public class ArticleCreateUpdateDto
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
     public List<string> Tags { get; set; } = new();
+    public List<ArticleLinkCreateDto> Links { get; set; } = new();
+}
+
+public class ArticleLinkCreateDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public int SortOrder { get; set; }
 }
 
 public class SiteSettingsUpdateDto

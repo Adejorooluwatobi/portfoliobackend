@@ -21,6 +21,7 @@ public class Article : BaseEntity
     public int SortOrder { get; set; }
 
     public List<ArticleTag> Tags { get; set; } = new();
+    public List<ArticleLink> Links { get; set; } = new();
 }
 
 public class ArticleTag : BaseEntity

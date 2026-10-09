@@ -18,6 +18,16 @@ public class ArticleDto
     public DateTime? PublishedAt { get; set; }
     public int SortOrder { get; set; }
     public List<string> Tags { get; set; } = new();
+    public List<ArticleLinkDto> Links { get; set; } = new();
+}
+
+public class ArticleLinkDto
+{
+    public Guid Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public int SortOrder { get; set; }
 }
 
 public class ContactInfoDto

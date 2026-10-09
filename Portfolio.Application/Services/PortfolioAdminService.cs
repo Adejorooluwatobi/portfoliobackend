@@ -293,6 +293,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             Title = dto.Title,
             Description = dto.Description,
             SortOrder = dto.SortOrder,
+            AccentColor = string.IsNullOrWhiteSpace(dto.AccentColor) ? "#8b5cf6" : dto.AccentColor,
             Tags = dto.Tags.Select((t, i) => new DisciplineCardTag { TagName = t, SortOrder = i + 1 }).ToList()
         };
 
@@ -311,6 +312,7 @@ public class PortfolioAdminService : IPortfolioAdminService
         card.Title = dto.Title;
         card.Description = dto.Description;
         card.SortOrder = dto.SortOrder;
+        card.AccentColor = string.IsNullOrWhiteSpace(dto.AccentColor) ? (card.AccentColor ?? "#8b5cf6") : dto.AccentColor;
         card.UpdatedAt = DateTime.UtcNow;
 
         _context.DisciplineCardTags.RemoveRange(card.Tags);
@@ -719,6 +721,18 @@ public class PortfolioAdminService : IPortfolioAdminService
         var cat = await _context.ProjectCategories.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
         if (cat == null) return false;
 
+        // Protect the root 'all' category from deletion
+        if (string.Equals(cat.Slug, "all", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var maps = await _context.ProjectCategoryMaps.Where(m => m.ProjectCategoryId == id).ToListAsync(cancellationToken);
+        if (maps.Count > 0)
+        {
+            _context.ProjectCategoryMaps.RemoveRange(maps);
+        }
+
         _context.ProjectCategories.Remove(cat);
         await _context.SaveChangesAsync(cancellationToken);
         return true;
@@ -727,12 +741,12 @@ public class PortfolioAdminService : IPortfolioAdminService
     // --- Articles ---
     public async Task<List<Article>> GetArticlesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Articles.Include(a => a.Tags).OrderBy(a => a.SortOrder).ToListAsync(cancellationToken);
+        return await _context.Articles.Include(a => a.Tags).Include(a => a.Links).OrderBy(a => a.SortOrder).ToListAsync(cancellationToken);
     }
 
     public async Task<Article?> GetArticleByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Articles.Include(a => a.Tags).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+        return await _context.Articles.Include(a => a.Tags).Include(a => a.Links).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
     public async Task<Article> CreateArticleAsync(ArticleCreateUpdateDto dto, CancellationToken cancellationToken = default)
@@ -756,8 +770,23 @@ public class PortfolioAdminService : IPortfolioAdminService
             SortOrder = dto.SortOrder,
             Tags = (dto.Tags != null && dto.Tags.Any()) 
                 ? dto.Tags.Select((t, i) => new ArticleTag { TagName = t, SortOrder = i + 1 }).ToList() 
-                : new List<ArticleTag>()
+                : new List<ArticleTag>(),
+            Links = (dto.Links != null && dto.Links.Any())
+                ? dto.Links.Select((l, i) => new ArticleLink { Title = l.Title, Url = l.Url, Icon = l.Icon, SortOrder = l.SortOrder > 0 ? l.SortOrder : i + 1 }).ToList()
+                : new List<ArticleLink>()
         };
+
+        if (!article.Links.Any())
+        {
+            if (!string.IsNullOrWhiteSpace(dto.LinkedinUrl))
+            {
+                article.Links.Add(new ArticleLink { Title = "LinkedIn", Url = dto.LinkedinUrl, Icon = "linkedin", SortOrder = 1 });
+            }
+            if (!string.IsNullOrWhiteSpace(dto.TwitterUrl))
+            {
+                article.Links.Add(new ArticleLink { Title = "X / Twitter", Url = dto.TwitterUrl, Icon = "twitter", SortOrder = 2 });
+            }
+        }
 
         await _context.Articles.AddAsync(article, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -766,7 +795,7 @@ public class PortfolioAdminService : IPortfolioAdminService
 
     public async Task<bool> UpdateArticleAsync(Guid id, ArticleCreateUpdateDto dto, CancellationToken cancellationToken = default)
     {
-        var article = await _context.Articles.Include(a => a.Tags).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+        var article = await _context.Articles.Include(a => a.Tags).Include(a => a.Links).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         if (article == null) return false;
 
         article.Slug = string.IsNullOrWhiteSpace(dto.Slug) ? (article.Slug ?? Guid.NewGuid().ToString()) : dto.Slug.Trim().ToLower();
@@ -791,6 +820,28 @@ public class PortfolioAdminService : IPortfolioAdminService
         {
             var newTags = dto.Tags.Select((t, i) => new ArticleTag { ArticleId = id, TagName = t, SortOrder = i + 1 }).ToList();
             await _context.ArticleTags.AddRangeAsync(newTags, cancellationToken);
+        }
+
+        _context.ArticleLinks.RemoveRange(article.Links);
+        var linksToSave = new List<ArticleLink>();
+        if (dto.Links != null && dto.Links.Any())
+        {
+            linksToSave = dto.Links.Select((l, i) => new ArticleLink { ArticleId = id, Title = l.Title, Url = l.Url, Icon = l.Icon, SortOrder = l.SortOrder > 0 ? l.SortOrder : i + 1 }).ToList();
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(dto.LinkedinUrl))
+            {
+                linksToSave.Add(new ArticleLink { ArticleId = id, Title = "LinkedIn", Url = dto.LinkedinUrl, Icon = "linkedin", SortOrder = 1 });
+            }
+            if (!string.IsNullOrWhiteSpace(dto.TwitterUrl))
+            {
+                linksToSave.Add(new ArticleLink { ArticleId = id, Title = "X / Twitter", Url = dto.TwitterUrl, Icon = "twitter", SortOrder = 2 });
+            }
+        }
+        if (linksToSave.Any())
+        {
+            await _context.ArticleLinks.AddRangeAsync(linksToSave, cancellationToken);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
