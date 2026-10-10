@@ -117,7 +117,8 @@ public class PortfolioPublicService : IPortfolioPublicService
                 Icon = p.Icon,
                 Title = p.Title,
                 Description = p.Description,
-                SortOrder = p.SortOrder
+                SortOrder = p.SortOrder,
+                AccentColor = p.AccentColor ?? "#8b5cf6"
             }).ToList(),
 
             DisciplineCards = disciplines.Select(d => new DisciplineCardDto
@@ -246,12 +247,15 @@ public class PortfolioPublicService : IPortfolioPublicService
 
     public async Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
+        var isGuid = Guid.TryParse(slug, out var id);
+        var slugLower = slug.ToLower();
+
         var project = await _context.Projects.AsNoTracking()
             .Include(p => p.Tags)
             .Include(p => p.CategoryMaps).ThenInclude(cm => cm.ProjectCategory)
             .Include(p => p.CaseStudy).ThenInclude(cs => cs!.Highlights)
             .Include(p => p.CaseStudy).ThenInclude(cs => cs!.Technologies)
-            .FirstOrDefaultAsync(p => p.Slug.ToLower() == slug.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(p => (isGuid && p.Id == id) || p.Slug.ToLower() == slugLower, cancellationToken);
 
         if (project == null) return null;
 

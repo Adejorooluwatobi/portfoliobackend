@@ -179,6 +179,41 @@ public class PortfolioPublicServiceTests
     }
 
     [Fact]
+    public async Task GetProjectBySlugAsync_ValidGuid_ReturnsProject()
+    {
+        // Arrange
+        using var context = TestDbContextFactory.Create();
+        var projId = Guid.NewGuid();
+        var project = new Project
+        {
+            Id = projId,
+            Slug = "guid-test-project",
+            Title = "GUID Test Project",
+            IsPublished = true,
+            HasCaseStudy = true,
+            CaseStudy = new CaseStudy
+            {
+                Title = "GUID Case Study",
+                Summary = "Loaded via GUID string"
+            }
+        };
+
+        await context.Projects.AddAsync(project);
+        await context.SaveChangesAsync();
+
+        var service = new PortfolioPublicService(context, _mockEmail.Object);
+
+        // Act
+        var result = await service.GetProjectBySlugAsync(projId.ToString());
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Title.Should().Be("GUID Test Project");
+        result.CaseStudy.Should().NotBeNull();
+        result.CaseStudy!.Summary.Should().Be("Loaded via GUID string");
+    }
+
+    [Fact]
     public async Task SubmitContactInquiryAsync_ValidData_PersistsInDbAndReturnsSuccess()
     {
         // Arrange

@@ -246,6 +246,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             Icon = dto.Icon,
             Title = dto.Title,
             Description = dto.Description,
+            AccentColor = !string.IsNullOrWhiteSpace(dto.AccentColor) ? dto.AccentColor : "#8b5cf6",
             SortOrder = dto.SortOrder
         };
 
@@ -262,6 +263,7 @@ public class PortfolioAdminService : IPortfolioAdminService
         card.Icon = dto.Icon;
         card.Title = dto.Title;
         card.Description = dto.Description;
+        card.AccentColor = !string.IsNullOrWhiteSpace(dto.AccentColor) ? dto.AccentColor : "#8b5cf6";
         card.SortOrder = dto.SortOrder;
         card.UpdatedAt = DateTime.UtcNow;
 

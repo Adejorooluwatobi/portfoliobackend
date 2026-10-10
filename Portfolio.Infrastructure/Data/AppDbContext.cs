@@ -84,6 +84,7 @@ public class AppDbContext : DbContext, IAppDbContext
         {
             b.ToTable("philosophy_cards");
             b.HasKey(x => x.Id);
+            b.Property(x => x.AccentColor).HasMaxLength(30).HasDefaultValue("#8b5cf6");
         });
 
         // DisciplineCard & Tags
