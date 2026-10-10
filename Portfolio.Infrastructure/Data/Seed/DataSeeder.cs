@@ -181,9 +181,9 @@ public class DataSeeder
 
         var cards = new List<PhilosophyCard>
         {
-            new() { Icon = "speed", Title = "Performance First", Description = "Sub-second latencies, tree-shaken bundles, optimized SQL queries & Redis caching.", SortOrder = 1 },
-            new() { Icon = "security", Title = "Enterprise Grade", Description = "Strict typing, JWT/OAuth2 mechanisms, role-based access, and clean domain design.", SortOrder = 2 },
-            new() { Icon = "devices", Title = "Fluid UI / UX", Description = "Responsive precision, accessible semantic layouts, and tactile motion design.", SortOrder = 3 }
+            new() { Icon = "speed", Title = "Performance First", Description = "Sub-second latencies, tree-shaken bundles, optimized SQL queries & Redis caching.", SortOrder = 1, AccentColor = "#8b5cf6" },
+            new() { Icon = "security", Title = "Enterprise Grade", Description = "Strict typing, JWT/OAuth2 mechanisms, role-based access, and clean domain design.", SortOrder = 2, AccentColor = "#10b981" },
+            new() { Icon = "devices", Title = "Fluid UI / UX", Description = "Responsive precision, accessible semantic layouts, and tactile motion design.", SortOrder = 3, AccentColor = "#0ea5e9" }
         };
 
         await _context.PhilosophyCards.AddRangeAsync(cards);
