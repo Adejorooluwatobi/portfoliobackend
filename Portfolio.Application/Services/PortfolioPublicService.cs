@@ -138,7 +138,11 @@ public class PortfolioPublicService : IPortfolioPublicService
     {
         var profile = await _context.Profiles.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
         var pageSetting = await _context.PageSettings.AsNoTracking().FirstOrDefaultAsync(p => p.PageKey == "resume", cancellationToken);
-        var experiences = await _context.WorkExperiences.AsNoTracking().Include(w => w.Technologies).OrderBy(w => w.SortOrder).ToListAsync(cancellationToken);
+        var experiences = await _context.WorkExperiences.AsNoTracking()
+            .Include(w => w.Technologies)
+            .OrderBy(w => w.SortOrder)
+            .ThenByDescending(w => w.CreatedAt)
+            .ToListAsync(cancellationToken);
         var educations = await _context.Educations.AsNoTracking().OrderBy(e => e.SortOrder).ToListAsync(cancellationToken);
         var skillCategories = await _context.SkillCategories.AsNoTracking().Include(s => s.Skills).OrderBy(s => s.SortOrder).ToListAsync(cancellationToken);
 
@@ -211,7 +215,10 @@ public class PortfolioPublicService : IPortfolioPublicService
             query = query.Where(p => p.CategoryMaps.Any(cm => cm.ProjectCategory.Slug.ToLower() == categorySlug.ToLower()));
         }
 
-        var projects = await query.OrderBy(p => p.SortOrder).ToListAsync(cancellationToken);
+        var projects = await query
+            .OrderBy(p => p.SortOrder)
+            .ThenByDescending(p => p.CreatedAt)
+            .ToListAsync(cancellationToken);
 
         return new ProjectsResponseDto
         {
@@ -300,6 +307,7 @@ public class PortfolioPublicService : IPortfolioPublicService
             .Include(a => a.Tags)
             .Include(a => a.Links)
             .OrderBy(a => a.SortOrder)
+            .ThenByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
         return articles.Select(a => new ArticleDto

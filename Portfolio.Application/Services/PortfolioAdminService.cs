@@ -338,11 +338,26 @@ public class PortfolioAdminService : IPortfolioAdminService
     // --- Resume ---
     public async Task<List<WorkExperience>> GetExperiencesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.WorkExperiences.Include(w => w.Technologies).OrderBy(w => w.SortOrder).ToListAsync(cancellationToken);
+        return await _context.WorkExperiences
+            .Include(w => w.Technologies)
+            .OrderBy(w => w.SortOrder)
+            .ThenByDescending(w => w.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<WorkExperience> CreateExperienceAsync(WorkExperienceCreateUpdateDto dto, CancellationToken cancellationToken = default)
     {
+        int targetOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+
+        // Shift existing experiences at or below targetOrder down by 1 so targetOrder is freed
+        var toShift = await _context.WorkExperiences
+            .Where(w => w.SortOrder >= targetOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var existing in toShift)
+        {
+            existing.SortOrder++;
+        }
+
         var exp = new WorkExperience
         {
             JobTitle = dto.JobTitle,
@@ -354,7 +369,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             IsCurrent = dto.IsCurrent,
             Description = dto.Description,
             AccentVariant = dto.AccentVariant,
-            SortOrder = dto.SortOrder,
+            SortOrder = targetOrder,
             Technologies = dto.Technologies.Select((t, i) => new ExperienceTechnology { Name = t, SortOrder = i + 1 }).ToList()
         };
 
@@ -368,6 +383,19 @@ public class PortfolioAdminService : IPortfolioAdminService
         var exp = await _context.WorkExperiences.Include(w => w.Technologies).FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
         if (exp == null) return false;
 
+        int newOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+        if (newOrder != exp.SortOrder)
+        {
+            // Swap with occupant if target sort order is already taken
+            var occupant = await _context.WorkExperiences
+                .FirstOrDefaultAsync(w => w.Id != id && w.SortOrder == newOrder, cancellationToken);
+            if (occupant != null)
+            {
+                occupant.SortOrder = exp.SortOrder;
+            }
+            exp.SortOrder = newOrder;
+        }
+
         exp.JobTitle = dto.JobTitle;
         exp.CompanyName = dto.CompanyName;
         exp.EmploymentType = dto.EmploymentType;
@@ -377,7 +405,6 @@ public class PortfolioAdminService : IPortfolioAdminService
         exp.IsCurrent = dto.IsCurrent;
         exp.Description = dto.Description;
         exp.AccentVariant = dto.AccentVariant;
-        exp.SortOrder = dto.SortOrder;
         exp.UpdatedAt = DateTime.UtcNow;
 
         _context.ExperienceTechnologies.RemoveRange(exp.Technologies);
@@ -393,7 +420,17 @@ public class PortfolioAdminService : IPortfolioAdminService
         var exp = await _context.WorkExperiences.FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
         if (exp == null) return false;
 
+        int deletedOrder = exp.SortOrder;
         _context.WorkExperiences.Remove(exp);
+
+        var toShift = await _context.WorkExperiences
+            .Where(w => w.Id != id && w.SortOrder > deletedOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var remaining in toShift)
+        {
+            remaining.SortOrder--;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -546,6 +583,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             .Include(p => p.Tags)
             .Include(p => p.CategoryMaps).ThenInclude(cm => cm.ProjectCategory)
             .OrderBy(p => p.SortOrder)
+            .ThenByDescending(p => p.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
@@ -561,6 +599,17 @@ public class PortfolioAdminService : IPortfolioAdminService
 
     public async Task<Project> CreateProjectAsync(ProjectCreateUpdateDto dto, CancellationToken cancellationToken = default)
     {
+        int targetOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+
+        // Shift existing projects at or below targetOrder down by 1 so targetOrder is freed
+        var toShift = await _context.Projects
+            .Where(p => p.SortOrder >= targetOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var existing in toShift)
+        {
+            existing.SortOrder++;
+        }
+
         var project = new Project
         {
             Slug = dto.Slug.Trim().ToLower(),
@@ -577,7 +626,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             ArticleUrl = dto.ArticleUrl,
             HasCaseStudy = dto.HasCaseStudy,
             IsPublished = dto.IsPublished,
-            SortOrder = dto.SortOrder,
+            SortOrder = targetOrder,
             Tags = dto.Tags.Select((t, i) => new ProjectTag { TagName = t, SortOrder = i + 1 }).ToList(),
             CategoryMaps = dto.CategoryIds.Select(catId => new ProjectCategoryMap { ProjectCategoryId = catId }).ToList()
         };
@@ -596,6 +645,19 @@ public class PortfolioAdminService : IPortfolioAdminService
 
         if (project == null) return false;
 
+        int newOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+        if (newOrder != project.SortOrder)
+        {
+            // Swap with occupant if target sort order is already taken
+            var occupant = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id != id && p.SortOrder == newOrder, cancellationToken);
+            if (occupant != null)
+            {
+                occupant.SortOrder = project.SortOrder;
+            }
+            project.SortOrder = newOrder;
+        }
+
         project.Slug = dto.Slug.Trim().ToLower();
         project.Title = dto.Title;
         project.ClientName = dto.ClientName;
@@ -610,7 +672,6 @@ public class PortfolioAdminService : IPortfolioAdminService
         project.ArticleUrl = dto.ArticleUrl;
         project.HasCaseStudy = dto.HasCaseStudy;
         project.IsPublished = dto.IsPublished;
-        project.SortOrder = dto.SortOrder;
         project.UpdatedAt = DateTime.UtcNow;
 
         _context.ProjectTags.RemoveRange(project.Tags);
@@ -631,7 +692,17 @@ public class PortfolioAdminService : IPortfolioAdminService
         var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         if (project == null) return false;
 
+        int deletedOrder = project.SortOrder;
         _context.Projects.Remove(project);
+
+        var toShift = await _context.Projects
+            .Where(p => p.Id != id && p.SortOrder > deletedOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var remaining in toShift)
+        {
+            remaining.SortOrder--;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -743,7 +814,12 @@ public class PortfolioAdminService : IPortfolioAdminService
     // --- Articles ---
     public async Task<List<Article>> GetArticlesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Articles.Include(a => a.Tags).Include(a => a.Links).OrderBy(a => a.SortOrder).ToListAsync(cancellationToken);
+        return await _context.Articles
+            .Include(a => a.Tags)
+            .Include(a => a.Links)
+            .OrderBy(a => a.SortOrder)
+            .ThenByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Article?> GetArticleByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -753,6 +829,17 @@ public class PortfolioAdminService : IPortfolioAdminService
 
     public async Task<Article> CreateArticleAsync(ArticleCreateUpdateDto dto, CancellationToken cancellationToken = default)
     {
+        int targetOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+
+        // Shift existing articles at or below targetOrder down by 1 so targetOrder is freed
+        var toShift = await _context.Articles
+            .Where(a => a.SortOrder >= targetOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var existing in toShift)
+        {
+            existing.SortOrder++;
+        }
+
         var article = new Article
         {
             Slug = dto.Slug.Trim().ToLower(),
@@ -769,7 +856,7 @@ public class PortfolioAdminService : IPortfolioAdminService
             FooterAnnotation = dto.FooterAnnotation,
             PublishedAt = dto.PublishedAt ?? DateTime.UtcNow,
             IsActive = dto.IsActive,
-            SortOrder = dto.SortOrder,
+            SortOrder = targetOrder,
             Tags = (dto.Tags != null && dto.Tags.Any()) 
                 ? dto.Tags.Select((t, i) => new ArticleTag { TagName = t, SortOrder = i + 1 }).ToList() 
                 : new List<ArticleTag>(),
@@ -800,6 +887,19 @@ public class PortfolioAdminService : IPortfolioAdminService
         var article = await _context.Articles.Include(a => a.Tags).Include(a => a.Links).FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         if (article == null) return false;
 
+        int newOrder = dto.SortOrder > 0 ? dto.SortOrder : 1;
+        if (newOrder != article.SortOrder)
+        {
+            // Swap with occupant if target sort order is already taken
+            var occupant = await _context.Articles
+                .FirstOrDefaultAsync(a => a.Id != id && a.SortOrder == newOrder, cancellationToken);
+            if (occupant != null)
+            {
+                occupant.SortOrder = article.SortOrder;
+            }
+            article.SortOrder = newOrder;
+        }
+
         article.Slug = string.IsNullOrWhiteSpace(dto.Slug) ? (article.Slug ?? Guid.NewGuid().ToString()) : dto.Slug.Trim().ToLower();
         article.Title = dto.Title;
         article.Excerpt = dto.Excerpt;
@@ -814,7 +914,6 @@ public class PortfolioAdminService : IPortfolioAdminService
         article.FooterAnnotation = dto.FooterAnnotation;
         article.PublishedAt = dto.PublishedAt;
         article.IsActive = dto.IsActive;
-        article.SortOrder = dto.SortOrder;
         article.UpdatedAt = DateTime.UtcNow;
 
         _context.ArticleTags.RemoveRange(article.Tags);
@@ -855,7 +954,17 @@ public class PortfolioAdminService : IPortfolioAdminService
         var article = await _context.Articles.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         if (article == null) return false;
 
+        int deletedOrder = article.SortOrder;
         _context.Articles.Remove(article);
+
+        var toShift = await _context.Articles
+            .Where(a => a.Id != id && a.SortOrder > deletedOrder)
+            .ToListAsync(cancellationToken);
+        foreach (var remaining in toShift)
+        {
+            remaining.SortOrder--;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
