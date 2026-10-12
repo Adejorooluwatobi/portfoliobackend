@@ -159,4 +159,133 @@ public class PortfolioAdminServiceTests
         stats.ArchivedCount.Should().Be(1);
         stats.TodayCount.Should().Be(2);
     }
+
+    [Fact]
+    public async Task CreateProjectAsync_WhenCreatedWithDefaultSortOrder_ShiftsExistingProjectsDown()
+    {
+        // Arrange
+        using var context = TestDbContextFactory.Create();
+        var p1 = new Project { Slug = "proj-1", Title = "P1", SortOrder = 1 };
+        var p2 = new Project { Slug = "proj-2", Title = "P2", SortOrder = 2 };
+        await context.Projects.AddRangeAsync(p1, p2);
+        await context.SaveChangesAsync();
+
+        var service = new PortfolioAdminService(context);
+
+        // Act: Create new project with SortOrder 1 (default top)
+        var created = await service.CreateProjectAsync(new ProjectCreateUpdateDto
+        {
+            Slug = "proj-new",
+            Title = "New Project",
+            SortOrder = 1
+        });
+
+        // Assert
+        created.SortOrder.Should().Be(1);
+        var refreshedP1 = await context.Projects.FindAsync(p1.Id);
+        var refreshedP2 = await context.Projects.FindAsync(p2.Id);
+        refreshedP1!.SortOrder.Should().Be(2);
+        refreshedP2!.SortOrder.Should().Be(3);
+
+        // All projects sorted
+        var list = await service.GetProjectsAsync();
+        list.Select(p => p.Slug).Should().ContainInOrder("proj-new", "proj-1", "proj-2");
+    }
+
+    [Fact]
+    public async Task CreateArticleAsync_WhenCreatedWithDefaultSortOrder_ShiftsExistingArticlesDown()
+    {
+        // Arrange
+        using var context = TestDbContextFactory.Create();
+        var a1 = new Article { Slug = "art-1", Title = "Article 1", SortOrder = 1 };
+        var a2 = new Article { Slug = "art-2", Title = "Article 2", SortOrder = 2 };
+        await context.Articles.AddRangeAsync(a1, a2);
+        await context.SaveChangesAsync();
+
+        var service = new PortfolioAdminService(context);
+
+        // Act: Create new article at top
+        var created = await service.CreateArticleAsync(new ArticleCreateUpdateDto
+        {
+            Slug = "art-new",
+            Title = "New Article",
+            SortOrder = 1
+        });
+
+        // Assert
+        created.SortOrder.Should().Be(1);
+        var refreshedA1 = await context.Articles.FindAsync(a1.Id);
+        var refreshedA2 = await context.Articles.FindAsync(a2.Id);
+        refreshedA1!.SortOrder.Should().Be(2);
+        refreshedA2!.SortOrder.Should().Be(3);
+
+        var list = await service.GetArticlesAsync();
+        list.Select(a => a.Slug).Should().ContainInOrder("art-new", "art-1", "art-2");
+    }
+
+    [Fact]
+    public async Task CreateExperienceAsync_WhenCreatedWithDefaultSortOrder_ShiftsExistingExperiencesDown()
+    {
+        // Arrange
+        using var context = TestDbContextFactory.Create();
+        var w1 = new WorkExperience { JobTitle = "Role 1", CompanyName = "Co 1", SortOrder = 1 };
+        var w2 = new WorkExperience { JobTitle = "Role 2", CompanyName = "Co 2", SortOrder = 2 };
+        await context.WorkExperiences.AddRangeAsync(w1, w2);
+        await context.SaveChangesAsync();
+
+        var service = new PortfolioAdminService(context);
+
+        // Act: Create new experience at top
+        var created = await service.CreateExperienceAsync(new WorkExperienceCreateUpdateDto
+        {
+            JobTitle = "Lead Architect",
+            CompanyName = "Enterprise Inc",
+            SortOrder = 1
+        });
+
+        // Assert
+        created.SortOrder.Should().Be(1);
+        var refreshedW1 = await context.WorkExperiences.FindAsync(w1.Id);
+        var refreshedW2 = await context.WorkExperiences.FindAsync(w2.Id);
+        refreshedW1!.SortOrder.Should().Be(2);
+        refreshedW2!.SortOrder.Should().Be(3);
+
+        var list = await service.GetExperiencesAsync();
+        list.Select(w => w.JobTitle).Should().ContainInOrder("Lead Architect", "Role 1", "Role 2");
+    }
+
+    [Fact]
+    public async Task UpdateProjectAsync_WhenTargetSortOrderOccupied_SwapsWithOccupant()
+    {
+        // Arrange
+        using var context = TestDbContextFactory.Create();
+        var p1 = new Project { Slug = "p1", Title = "P1", SortOrder = 1 };
+        var p2 = new Project { Slug = "p2", Title = "P2", SortOrder = 2 };
+        var p3 = new Project { Slug = "p3", Title = "P3", SortOrder = 3 };
+        await context.Projects.AddRangeAsync(p1, p2, p3);
+        await context.SaveChangesAsync();
+
+        var service = new PortfolioAdminService(context);
+
+        // Act: Move p3 from position 3 to position 1
+        var success = await service.UpdateProjectAsync(p3.Id, new ProjectCreateUpdateDto
+        {
+            Slug = "p3",
+            Title = "P3 Updated",
+            SortOrder = 1
+        });
+
+        // Assert
+        success.Should().BeTrue();
+        var refreshedP3 = await context.Projects.FindAsync(p3.Id);
+        var refreshedP1 = await context.Projects.FindAsync(p1.Id);
+        var refreshedP2 = await context.Projects.FindAsync(p2.Id);
+
+        refreshedP3!.SortOrder.Should().Be(1);
+        refreshedP1!.SortOrder.Should().Be(3); // Swapped!
+        refreshedP2!.SortOrder.Should().Be(2); // Untouched!
+
+        var list = await service.GetProjectsAsync();
+        list.Select(p => p.Slug).Should().ContainInOrder("p3", "p2", "p1");
+    }
 }
